@@ -1,10 +1,12 @@
 
-
+from datetime import datetime, timezone
 import io
 import gzip
 import json
 
 import requests
+
+from ingestion.ingest_to_bronze import prepare_bronze_event
 
 def parse_events(gz):
     with gzip.GzipFile(fileobj=gz, mode='r') as f:
@@ -20,7 +22,9 @@ def download_gh_events(url):
     response.raw.decode_content = False  # keep gzip bytes raw, don't let urllib3 auto-decompress
     return response.raw
 
-def load_events(window):
+def load_events(window) -> iter:
     url = build_url(window)
     raw = download_gh_events(url)
-    yield from parse_events(raw)
+    ingested_at = datetime.now(timezone.utc).isoformat()
+    for event in parse_events(raw):
+        yield prepare_bronze_event(event, window, ingested_at)

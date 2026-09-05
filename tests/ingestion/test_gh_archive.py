@@ -10,7 +10,8 @@ from ingestion.gh_archive import load_events, parse_events, build_url, download_
 def events():
     return [
     {'id': '26163418658',
- 'type': 'PushEvent'
+ 'type': 'PushEvent',
+ 'created_at': '2023-01-01T00:00:00Z'
 },
  {'id': '26163418711',
  'type': 'CreateEvent',
@@ -74,4 +75,5 @@ def test_load_events_full_chain(events):
         results = list(load_events("2023-01-01-0"))
 
     assert len(results) == 2
-    assert results[0]["id"] == "26163418658"
+    assert results[0].source_event_id == "26163418658"
+    assert results[1].source_event_id == "26163418711"
