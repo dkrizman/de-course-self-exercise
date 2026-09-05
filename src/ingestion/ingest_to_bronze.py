@@ -1,22 +1,30 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-@dataclass
-class BronzeEvent:
-    source_event_id: str
-    event_type: str
-    event_created_at: datetime
-    source_window: str
-    ingested_at: datetime
-    raw_event: dict[str, Any]
+from psycopg.types.json import Json
 
-def prepare_bronze_event(event: dict[str, Any], source_window: str, ingested_at: str) -> BronzeEvent:
-    return BronzeEvent(
-        source_event_id=event["id"],
-        event_type=event["type"],
-        event_created_at=datetime.fromisoformat(event["created_at"].replace("Z", "+00:00")),
-        source_window=source_window,
-        ingested_at=datetime.fromisoformat(ingested_at.replace("Z", "+00:00")),
-        raw_event=event,
-    )
+from ingestion.gh_archive import load_events
+
+
+
+def ingest_window(connection, window):
+    with connection.cursor() as cursor:
+        for event in load_events(window):
+            cursor.execute(
+                """
+                INSERT INTO bronze.github_events
+                    (source_event_id, event_type, event_created_at, source_window, ingested_at, raw_event)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (source_event_id) DO NOTHING;
+                """,
+                (
+                    event.source_event_id,
+                    event.event_type,
+                    event.event_created_at,
+                    event.source_window,
+                    event.ingested_at,
+                    Json(event.raw_event),
+                ),
+            )
+    connection.commit()

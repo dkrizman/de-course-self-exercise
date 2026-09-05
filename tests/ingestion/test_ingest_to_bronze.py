@@ -1,22 +1,43 @@
-from ingestion.ingest_to_bronze import prepare_bronze_event
-from datetime import datetime
+from unittest.mock import patch
+from ingestion.gh_archive import BronzeEvent
+from ingestion.ingest_to_bronze import ingest_window
+from datetime import datetime, timezone
 
 
-def test_prepare_bronze_event() -> None:
-    event = {
-        "id": "1",
-        "type": "PushEvent",
-        "created_at": "2023-01-01T00:00:00Z",
-    }
+events = [
+    BronzeEvent(
+        source_event_id="1",
+        event_type="PushEvent",
+        event_created_at=datetime(2023, 1, 1, 0, 0, tzinfo=timezone.utc),
+        source_window="2023-01-01-0",
+        ingested_at=datetime(2023, 1, 1, 0, 0, tzinfo=timezone.utc),
+        raw_event={"id": "1"},
+    ),
+    BronzeEvent(
+        source_event_id="2",
+        event_type="CreateEvent",
+        event_created_at=datetime(2023, 1, 1, 0, 0, tzinfo=timezone.utc),
+        source_window="2023-01-01-0",
+        ingested_at=datetime(2023, 1, 1, 0, 0, tzinfo=timezone.utc),
+        raw_event={"id": "2"},
+    ),
+]
 
-    window = "2023-01-01-00"
 
-    ingested_at = "2026-09-04T10:00:00Z"
+@patch("ingestion.ingest_to_bronze.load_events", return_value=events)
+def test_ingest_window(mock_load_events, connection):
 
-    bronze_event = prepare_bronze_event(event=event, source_window=window, ingested_at=ingested_at)
-    assert bronze_event.source_event_id == event["id"]
-    assert bronze_event.event_type == event["type"]
-    assert bronze_event.event_created_at == datetime.fromisoformat(event["created_at"].replace("Z", "+00:00"))
-    assert bronze_event.source_window == window
-    assert bronze_event.ingested_at == datetime.fromisoformat(ingested_at.replace("Z", "+00:00"))
-    assert bronze_event.raw_event == event
+    mock_load_events.return_value = events
+
+    ingest_window(connection, "2023-01-01-0")
+    with connection.cursor() as cursor:
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM bronze.github_events
+            """
+        )
+
+        count = cursor.fetchone()[0]
+    assert count == len(events)
