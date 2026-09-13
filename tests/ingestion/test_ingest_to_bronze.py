@@ -6,6 +6,7 @@ from ingestion.ingest_to_bronze import ingest_window
 from datetime import datetime, timezone
 
 from ingestion.pipeline_state import get_last_successful_window
+from ingestion.ingest_to_bronze import next_window
 
 
 events = [
@@ -56,7 +57,6 @@ def test_transaction_failure(mock_load_events, connection):
     with pytest.raises(RuntimeError):
         ingest_window(
             connection,
-            "2023-01-01-0",
             fail_after=2,
         )
     with connection.cursor() as cursor:
@@ -86,3 +86,8 @@ def test_transaction_success_with_state(mock_load_events, connection):
     )
 
     assert last_window == "2023-01-01-0"
+
+def test_get_next_window():
+    last_successful_window = "2023-01-01-23"
+    next = next_window(last_successful_window)
+    assert next == "2023-01-02-00"

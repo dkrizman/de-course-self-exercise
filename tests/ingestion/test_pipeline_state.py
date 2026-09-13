@@ -98,7 +98,6 @@ def test_successful_window(connection):
         with pytest.raises(RuntimeError):
             ingest_window(
                 connection,
-                "2023-01-01-01",
                 fail_after=2,
             )
 
