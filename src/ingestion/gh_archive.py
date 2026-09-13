@@ -22,6 +22,14 @@ def download_gh_events(url):
     response.raw.decode_content = False  # keep gzip bytes raw, don't let urllib3 auto-decompress
     return response.raw
 
+def download_with_retry(url, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return download_gh_events(url)
+        except ConnectionError:
+            if attempt == max_retries - 1:
+                raise
+
 @dataclass
 class BronzeEvent:
     source_event_id: str
@@ -43,7 +51,7 @@ def prepare_bronze_event(event: dict[str, Any], source_window: str, ingested_at:
 
 def load_events(window) -> Iterator[BronzeEvent]:
     url = build_url(window)
-    raw = download_gh_events(url)
+    raw = download_with_retry(url)
     ingested_at = datetime.now(timezone.utc).isoformat()
     for event in parse_events(raw):
         yield prepare_bronze_event(event, window, ingested_at)

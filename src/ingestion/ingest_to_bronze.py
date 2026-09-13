@@ -20,7 +20,6 @@ def ingest_window(connection, fail_after=None):
         with connection.cursor() as cursor:
             for index, event in enumerate(load_events(window)):
                 if fail_after is not None and index == fail_after:
-                    connection.rollback()
                     raise RuntimeError("Failing after processing the specified number of events")
                 cursor.execute(
                 """
@@ -47,6 +46,11 @@ def ingest_window(connection, fail_after=None):
 
 def next_window(last_successful_window):
     date_part, hour_part = last_successful_window.rsplit("-", 1)
-    dt = datetime.strptime(date_part, "%Y-%m-%d").replace(hour=int(hour_part))
+
+    dt = datetime.strptime(date_part, "%Y-%m-%d").replace(
+        hour=int(hour_part)
+    )
+
     dt += timedelta(hours=1)
-    return f"{dt.strftime('%Y-%m-%d')}-{dt.hour:02d}"
+
+    return f"{dt.strftime('%Y-%m-%d')}-{dt.hour}"

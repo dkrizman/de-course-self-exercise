@@ -5,7 +5,7 @@ import json
 from unittest.mock import patch, Mock
 from datetime import datetime
 
-from ingestion.gh_archive import load_events, parse_events, build_url, download_gh_events, prepare_bronze_event
+from ingestion.gh_archive import load_events, parse_events, build_url, download_gh_events, prepare_bronze_event, download_with_retry
 
 @pytest.fixture
 def events():
@@ -99,3 +99,13 @@ def test_prepare_bronze_event() -> None:
     assert bronze_event.source_window == window
     assert bronze_event.ingested_at == datetime.fromisoformat(ingested_at.replace("Z", "+00:00"))
     assert bronze_event.raw_event == event
+
+
+def test_download_gh_events_with_retry_succeeds_after_transient_failure():
+    with patch("ingestion.gh_archive.download_gh_events") as mock_download:
+        mock_download.side_effect = [ConnectionError(), "data"]
+
+        result = download_with_retry(build_url("2023-01-01-0"))
+
+    assert result == "data"
+    assert mock_download.call_count == 2

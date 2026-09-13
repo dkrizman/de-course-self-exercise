@@ -90,4 +90,4 @@ def test_transaction_success_with_state(mock_load_events, connection):
 def test_get_next_window():
     last_successful_window = "2023-01-01-23"
     next = next_window(last_successful_window)
-    assert next == "2023-01-02-00"
+    assert next == "2023-01-02-0"
