@@ -1,9 +1,11 @@
 
-
+from dataclasses import dataclass
+from datetime import datetime, timezone
 import io
 import gzip
 import json
 
+from typing import Any, Iterator
 import requests
 
 def parse_events(gz):
@@ -20,7 +22,36 @@ def download_gh_events(url):
     response.raw.decode_content = False  # keep gzip bytes raw, don't let urllib3 auto-decompress
     return response.raw
 
-def load_events(window):
+def download_with_retry(url, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return download_gh_events(url)
+        except ConnectionError:
+            if attempt == max_retries - 1:
+                raise
+
+@dataclass
+class BronzeEvent:
+    source_event_id: str
+    event_type: str
+    event_created_at: datetime
+    source_window: str
+    ingested_at: datetime
+    raw_event: dict[str, Any]
+
+def prepare_bronze_event(event: dict[str, Any], source_window: str, ingested_at: str) -> BronzeEvent:
+    return BronzeEvent(
+        source_event_id=event["id"],
+        event_type=event["type"],
+        event_created_at=datetime.fromisoformat(event["created_at"].replace("Z", "+00:00")),
+        source_window=source_window,
+        ingested_at=datetime.fromisoformat(ingested_at.replace("Z", "+00:00")),
+        raw_event=event,
+    )
+
+def load_events(window) -> Iterator[BronzeEvent]:
     url = build_url(window)
-    raw = download_gh_events(url)
-    yield from parse_events(raw)
+    raw = download_with_retry(url)
+    ingested_at = datetime.now(timezone.utc).isoformat()
+    for event in parse_events(raw):
+        yield prepare_bronze_event(event, window, ingested_at)

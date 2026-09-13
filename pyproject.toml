@@ -9,6 +9,7 @@ dependencies = [
     "ipykernel>=7.3.0",
     "testcontainers>=4.15.0",
     "pandas>=3.0.5",
+    "pyfiglet>=1.0.4",
 ]
 
 [dependency-groups]
