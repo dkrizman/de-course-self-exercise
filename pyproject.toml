@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "de-self-exercise"
 version = "0.1.0"
@@ -10,6 +14,7 @@ dependencies = [
     "testcontainers>=4.15.0",
     "pandas>=3.0.5",
     "pyfiglet>=1.0.4",
+    "requests>=2.34.2",
 ]
 
 [dependency-groups]
