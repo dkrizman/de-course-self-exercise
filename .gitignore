@@ -14,3 +14,5 @@ build/
 data/raw_bronze/
 data/rejects/
 data/reports/
+
+.DS_Store

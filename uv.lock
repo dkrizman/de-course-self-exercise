@@ -327,13 +327,14 @@ wheels = [
 [[package]]
 name = "de-self-exercise"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "ipykernel" },
     { name = "pandas" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pyfiglet" },
+    { name = "requests" },
     { name = "testcontainers" },
 ]
 
@@ -350,6 +351,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=3.0.5" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "pyfiglet", specifier = ">=1.0.4" },
+    { name = "requests", specifier = ">=2.34.2" },
     { name = "testcontainers", specifier = ">=4.15.0" },
 ]
 
