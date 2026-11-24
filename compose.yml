@@ -22,6 +22,10 @@ services:
 
   app:
     build: .
+    volumes:
+      - .:/app
+      - app_venv:/app/.venv
+      - ./.dbt:/root/.dbt
     environment:
       DATABASE_URL: postgresql://pipeline:pipeline@db:5432/pipeline
 
@@ -31,3 +35,4 @@ services:
 
 volumes:
   postgres_data:
+  app_venv:
