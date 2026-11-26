@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import io
 import gzip
 import json
+from typing import Any
 
 from typing import Any, Iterator
 import requests
@@ -39,14 +40,28 @@ class BronzeEvent:
     ingested_at: datetime
     raw_event: dict[str, Any]
 
+
+def sanitize_json(value: Any) -> Any:
+    if isinstance(value, str):
+        return value.replace("\x00", "\ufffd")
+    if isinstance(value, list):
+        return [sanitize_json(item) for item in value]
+    if isinstance(value, dict):
+        return {
+            sanitize_json(key): sanitize_json(item)
+            for key, item in value.items()
+        }
+    return value
+
 def prepare_bronze_event(event: dict[str, Any], source_window: str, ingested_at: str) -> BronzeEvent:
+    raw_event=sanitize_json(event)
     return BronzeEvent(
         source_event_id=event["id"],
         event_type=event["type"],
         event_created_at=datetime.fromisoformat(event["created_at"].replace("Z", "+00:00")),
         source_window=source_window,
         ingested_at=datetime.fromisoformat(ingested_at.replace("Z", "+00:00")),
-        raw_event=event,
+        raw_event=raw_event,
     )
 
 def load_events(window) -> Iterator[BronzeEvent]:

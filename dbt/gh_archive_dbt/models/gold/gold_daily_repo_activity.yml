@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: gold_daily_repo_activity
+    description: "Daily GitHub activity aggregated by repository."
+    columns:
+      - name: activity_date
+        data_tests:
+          - not_null
+
+      - name: repo_name
+        data_tests:
+          - not_null
+
+      - name: event_count
+        data_tests:
+          - not_null
+
+      - name: unique_actors
+        data_tests:
+          - not_null

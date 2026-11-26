@@ -15,6 +15,7 @@ dependencies = [
     "pandas>=3.0.5",
     "pyfiglet>=1.0.4",
     "requests>=2.34.2",
+    "dbt-postgres>=1.11.0",
 ]
 
 [dependency-groups]

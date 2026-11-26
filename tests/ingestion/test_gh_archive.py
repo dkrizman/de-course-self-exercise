@@ -109,3 +109,14 @@ def test_download_gh_events_with_retry_succeeds_after_transient_failure():
 
     assert result == "data"
     assert mock_download.call_count == 2
+
+def test_prepare_bronze_event_sanitizes_null_bytes():
+    event = {
+        "id": "1",
+        "type": "PushEvent",
+        "created_at": "2023-01-01T00:00:00Z",
+        "payload": {"description": "A\u0000B"},
+    }
+
+    result = prepare_bronze_event(event, "2023-01-01-0", "2026-09-04T10:00:00Z")
+    assert "\x00" not in str(result.raw_event)

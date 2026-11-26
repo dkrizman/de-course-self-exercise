@@ -16,3 +16,8 @@ data/rejects/
 data/reports/
 
 .DS_Store
+
+
+.dbt/
+dbt/target/
+dbt/logs/

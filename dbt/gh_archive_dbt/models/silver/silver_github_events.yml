@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: silver_github_events
+    description: "Flattened GitHub events with actor and repository attributes."
+    columns:
+      - name: source_event_id
+        data_tests:
+          - unique
+          - not_null
+
+      - name: event_type
+        data_tests:
+          - not_null
+
+      - name: event_created_at
+        data_tests:
+          - not_null
+
+      - name: actor_login
+        data_tests:
+          - not_null
+
+      - name: repo_name
+        data_tests:
+          - not_null
