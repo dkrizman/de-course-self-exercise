@@ -3,5 +3,6 @@ SELECT
     event_type,
     event_created_at,
     source_window,
-    ingested_at
+    ingested_at,
+    raw_event
 FROM {{ source('bronze', 'github_events') }}

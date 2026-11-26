@@ -18,7 +18,7 @@ SELECT
     (raw_event -> 'repo' ->> 'id')::BIGINT AS repo_id,
     raw_event -> 'repo' ->> 'name' AS repo_name
 
-FROM {{ source('bronze', 'github_events') }} AS bronze
+FROM {{ ref('stg_github_events') }} AS bronze
 
 -- {% if is_incremental() %}
 
